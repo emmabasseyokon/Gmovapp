@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { createMember } from '@/app/admin/members/actions'
 import type { Profile } from '@/types/database.types'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -20,37 +21,34 @@ export function MembersManager({ initialMembers }: Props) {
 
   const supabase = createClient()
 
-  async function handleInvite(e: React.FormEvent) {
+  async function handleInvite(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setSuccess(null)
     setLoading(true)
 
-    // Admin creates member via Supabase Auth admin API (requires service role)
-    // For client-side, we use signUp — in production use a server action with service role key
-    const { data, error: authErr } = await supabase.auth.signUp({
-      email: inviteEmail,
-      password: invitePassword,
-      options: { data: { full_name: inviteName } },
-    })
+    const formData = new FormData()
+    formData.set('email', inviteEmail)
+    formData.set('password', invitePassword)
+    formData.set('full_name', inviteName)
 
-    if (authErr) { setError(authErr.message); setLoading(false); return }
-    if (data.user) {
-      setSuccess(`Account created for ${inviteEmail}. They can now log in.`)
-      setInviteEmail('')
-      setInviteName('')
-      setInvitePassword('')
-      // Profile is auto-created by the DB trigger, add to local state
-      const newProfile: Profile = {
-        id: data.user.id,
-        full_name: inviteName,
-        email: inviteEmail,
-        role: 'member',
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-      }
-      setMembers(prev => [...prev, newProfile].sort((a, b) => a.full_name.localeCompare(b.full_name)))
+    const result = await createMember(formData)
+
+    if (result.error) { setError(result.error); setLoading(false); return }
+
+    setSuccess(`Account created for ${inviteEmail}. They can now log in.`)
+    setInviteEmail('')
+    setInviteName('')
+    setInvitePassword('')
+    const newProfile: Profile = {
+      id: result.userId!,
+      full_name: inviteName,
+      email: inviteEmail,
+      role: 'member',
+      avatar_url: null,
+      created_at: new Date().toISOString(),
     }
+    setMembers(prev => [...prev, newProfile].sort((a, b) => a.full_name.localeCompare(b.full_name)))
     setLoading(false)
   }
 
