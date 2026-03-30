@@ -46,8 +46,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-7xl gap-0">
-        {/* Sidebar */}
+      {/* Mobile nav — full width bar above content */}
+      <div className="flex gap-1 overflow-x-auto border-b border-gray-200 bg-white px-3 py-2 sm:hidden">
+        {NAV.map(item => (
+          <Link key={item.href} href={item.href} className="shrink-0 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">
+            {item.label}
+          </Link>
+        ))}
+      </div>
+
+      <div className="mx-auto flex max-w-7xl">
+        {/* Sidebar — desktop only */}
         <aside className="hidden w-52 shrink-0 border-r border-gray-200 bg-white min-h-[calc(100vh-57px)] pt-6 sm:block">
           <nav className="space-y-1 px-3">
             {NAV.map(item => (
@@ -62,16 +71,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </nav>
         </aside>
 
-        {/* Mobile nav */}
-        <div className="flex w-full gap-2 overflow-x-auto border-b border-gray-200 bg-white px-4 py-2 sm:hidden">
-          {NAV.map(item => (
-            <Link key={item.href} href={item.href} className="shrink-0 rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600">
-              {item.label}
-            </Link>
-          ))}
-        </div>
-
-        <main className="flex-1 px-4 py-6 sm:px-8">
+        <main className="min-w-0 flex-1 px-3 py-4 sm:px-8 sm:py-6">
           {children}
         </main>
       </div>
