@@ -1,20 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestWeek, getWeeks } from '@/lib/queries/weeks'
 import { getMembers } from '@/lib/queries/members'
-import { getAllTasks } from '@/lib/queries/tasks'
 import { Card, CardContent } from '@/components/ui/Card'
 import Link from 'next/link'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
-  const [latestWeek, weeks, members, tasks] = await Promise.all([
+  const [latestWeek, weeks, members] = await Promise.all([
     getLatestWeek(),
     getWeeks(),
     getMembers(),
-    getAllTasks(),
   ])
 
-  const { count: submissionsThisWeek } = latestWeek
+  const { count: scoredThisWeek } = latestWeek
     ? await supabase
         .from('submissions')
         .select('*', { count: 'exact', head: true })
@@ -25,20 +23,14 @@ export default async function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">Manage scoring, members, and tasks.</p>
+        <p className="mt-1 text-sm text-gray-500">Manage scoring and members.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="py-5">
             <p className="text-sm text-gray-500">Total Members</p>
             <p className="mt-1 text-3xl font-bold text-gray-800">{members.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-5">
-            <p className="text-sm text-gray-500">Active Tasks</p>
-            <p className="mt-1 text-3xl font-bold text-gray-800">{tasks.filter(t => t.is_active).length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -49,8 +41,8 @@ export default async function AdminDashboard() {
         </Card>
         <Card>
           <CardContent className="py-5">
-            <p className="text-sm text-gray-500">Submissions This Week</p>
-            <p className="mt-1 text-3xl font-bold text-blue-700">{submissionsThisWeek ?? 0}</p>
+            <p className="text-sm text-gray-500">Scored This Week</p>
+            <p className="mt-1 text-3xl font-bold text-blue-700">{scoredThisWeek ?? 0} / {members.length}</p>
           </CardContent>
         </Card>
       </div>
@@ -81,6 +73,18 @@ export default async function AdminDashboard() {
           <div>
             <p className="font-semibold text-gray-800">Manage Weeks</p>
             <p className="text-sm text-gray-500">Open new week or lock existing</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/scoreboard"
+          className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-5 hover:bg-gray-50">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-gray-800">View Scoreboard</p>
+            <p className="text-sm text-gray-500">All-time rankings</p>
           </div>
         </Link>
       </div>

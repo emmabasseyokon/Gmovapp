@@ -24,12 +24,12 @@ export default async function LeaderboardPage({ searchParams }: Props) {
       </div>
 
       {/* Week selector */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {weeks.map(w => (
           <a
             key={w.id}
             href={`/dashboard/leaderboard?week=${w.id}`}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors sm:px-4 sm:py-1.5 sm:text-sm ${
               w.id === activeWeek?.id
                 ? 'bg-blue-700 text-white'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'

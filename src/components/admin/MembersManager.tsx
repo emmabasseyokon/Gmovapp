@@ -119,7 +119,7 @@ export function MembersManager({ initialMembers }: Props) {
           ) : (
             <ul className="divide-y divide-gray-100">
               {members.map(member => (
-                <li key={member.id} className="flex items-center justify-between px-6 py-4">
+                <li key={member.id} className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-800">{member.full_name}</span>

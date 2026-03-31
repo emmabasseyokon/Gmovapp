@@ -16,7 +16,7 @@ export function AnnouncementsManager({ initialAnnouncements }: Props) {
 
   const supabase = createClient()
 
-  async function handlePost(e: React.FormEvent) {
+  async function handlePost(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setLoading(true)
@@ -81,8 +81,8 @@ export function AnnouncementsManager({ initialAnnouncements }: Props) {
           ) : (
             <ul className="divide-y divide-gray-100">
               {announcements.map(a => (
-                <li key={a.id} className="px-6 py-4">
-                  <div className="flex items-start justify-between gap-4">
+                <li key={a.id} className="px-4 py-3 sm:px-6 sm:py-4">
+                  <div className="flex items-start justify-between gap-2 sm:gap-4">
                     <div className="flex-1">
                       <p className="font-medium text-gray-800">{a.title}</p>
                       <p className="mt-1 whitespace-pre-line text-sm text-gray-600">{a.body}</p>

@@ -19,13 +19,13 @@ export function WeeksManager({ initialWeeks }: Props) {
   const supabase = createClient()
 
   // Suggest a label when dates are picked
-  function suggestLabel(start: string, end: string) {
+  function suggestLabel(start: string) {
     if (!start) return ''
     const d = new Date(start)
     return `Week of ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
   }
 
-  async function handleCreate(e: React.FormEvent) {
+  async function handleCreate(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setLoading(true)
@@ -71,7 +71,7 @@ export function WeeksManager({ initialWeeks }: Props) {
                   setForm(f => ({
                     ...f,
                     start_date: start,
-                    label: f.label || suggestLabel(start, f.end_date),
+                    label: f.label || suggestLabel(start),
                   }))
                 }}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
@@ -110,7 +110,7 @@ export function WeeksManager({ initialWeeks }: Props) {
           ) : (
             <ul className="divide-y divide-gray-100">
               {weeks.map(week => (
-                <li key={week.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                <li key={week.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-800">{week.label}</span>

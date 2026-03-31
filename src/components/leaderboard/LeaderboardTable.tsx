@@ -47,23 +47,23 @@ export function LeaderboardTable({ initialScores, weekId }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto -mx-6 px-6">
+      <table className="w-full text-xs sm:text-sm">
         <thead>
           <tr className="border-b border-gray-200 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-            <th className="pb-3 pr-4">Rank</th>
-            <th className="pb-3 pr-4">Member</th>
-            <th className="pb-3 text-right">Points</th>
+            <th className="pb-2 pr-3 sm:pb-3 sm:pr-4">Rank</th>
+            <th className="pb-2 pr-3 sm:pb-3 sm:pr-4">Member</th>
+            <th className="pb-2 text-right sm:pb-3">Points</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {scores.map((score) => (
             <tr key={score.member_id} className="hover:bg-gray-50">
-              <td className="py-3 pr-4 font-bold text-gray-600">
+              <td className="py-2 pr-3 font-bold text-gray-600 sm:py-3 sm:pr-4">
                 {MEDAL[score.rank] ?? `#${score.rank}`}
               </td>
-              <td className="py-3 pr-4 font-medium text-gray-800">{score.full_name}</td>
-              <td className="py-3 text-right">
+              <td className="py-2 pr-3 font-medium text-gray-800 sm:py-3 sm:pr-4">{score.full_name}</td>
+              <td className="py-2 text-right sm:py-3">
                 <Badge variant="info">{score.total_points} pts</Badge>
               </td>
             </tr>

@@ -53,29 +53,29 @@ export default async function MyScoresPage() {
           {history.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-400">No scores recorded yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-6 px-6">
+              <table className="w-full text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="pb-3 pr-4">Week</th>
-                    <th className="pb-3 pr-4">Date</th>
-                    <th className="pb-3 pr-4 text-center">Rank</th>
-                    <th className="pb-3 text-right">Points</th>
+                    <th className="pb-2 pr-3 sm:pb-3 sm:pr-4">Week</th>
+                    <th className="hidden pb-2 pr-3 sm:table-cell sm:pb-3 sm:pr-4">Date</th>
+                    <th className="pb-2 pr-3 text-center sm:pb-3 sm:pr-4">Rank</th>
+                    <th className="pb-2 text-right sm:pb-3">Points</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {history.map((row) => (
                     <tr key={`${row.week_id}-${row.member_id}`} className="hover:bg-gray-50">
-                      <td className="py-3 pr-4 font-medium text-gray-800">{row.week_label}</td>
-                      <td className="py-3 pr-4 text-gray-500">
+                      <td className="py-2 pr-3 font-medium text-gray-800 sm:py-3 sm:pr-4">{row.week_label}</td>
+                      <td className="hidden py-2 pr-3 text-gray-500 sm:table-cell sm:py-3 sm:pr-4">
                         {new Date(row.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
-                      <td className="py-3 pr-4 text-center">
+                      <td className="py-2 pr-3 text-center sm:py-3 sm:pr-4">
                         <Badge variant={row.rank === 1 ? 'success' : row.rank <= 3 ? 'warning' : 'default'}>
                           #{row.rank}
                         </Badge>
                       </td>
-                      <td className="py-3 text-right font-semibold text-blue-700">{row.total_points}</td>
+                      <td className="py-2 text-right font-semibold text-blue-700 sm:py-3">{row.total_points}</td>
                     </tr>
                   ))}
                 </tbody>

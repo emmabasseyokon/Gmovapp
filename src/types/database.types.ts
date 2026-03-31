@@ -29,34 +29,6 @@ export interface Database {
         }
         Relationships: []
       }
-      tasks: {
-        Row: {
-          id: string
-          name: string
-          description: string | null
-          points: number
-          is_active: boolean
-          created_by: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description?: string | null
-          points: number
-          is_active?: boolean
-          created_by?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string | null
-          points?: number
-          is_active?: boolean
-        }
-        Relationships: []
-      }
       weeks: {
         Row: {
           id: string
@@ -88,8 +60,8 @@ export interface Database {
           id: string
           week_id: string
           member_id: string
-          task_id: string
           points: number
+          note: string | null
           recorded_by: string | null
           created_at: string
         }
@@ -97,13 +69,14 @@ export interface Database {
           id?: string
           week_id: string
           member_id: string
-          task_id: string
           points: number
+          note?: string | null
           recorded_by?: string | null
           created_at?: string
         }
         Update: {
           points?: number
+          note?: string | null
         }
         Relationships: []
       }
@@ -155,7 +128,6 @@ export interface Database {
 }
 
 export type Profile = Database['public']['Tables']['profiles']['Row']
-export type Task = Database['public']['Tables']['tasks']['Row']
 export type Week = Database['public']['Tables']['weeks']['Row']
 export type Submission = Database['public']['Tables']['submissions']['Row']
 export type Announcement = Database['public']['Tables']['announcements']['Row']

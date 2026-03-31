@@ -25,12 +25,24 @@ export async function getMemberScoreHistory(memberId: string) {
   return data ?? []
 }
 
-export async function getMemberSubmissionsForWeek(memberId: string, weekId: string) {
+export async function getMemberSubmissionForWeek(memberId: string, weekId: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('submissions')
-    .select('*, tasks(name, description)')
+    .select('*')
     .eq('member_id', memberId)
+    .eq('week_id', weekId)
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}
+
+export async function getAllSubmissionsForWeek(weekId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
     .eq('week_id', weekId)
 
   if (error) throw error
@@ -45,7 +57,6 @@ export async function getAllTimeScoreboard() {
 
   if (error) throw error
 
-  // Aggregate per member across all weeks
   const map = new Map<string, { member_id: string; full_name: string; total_points: number; weeks_participated: number }>()
   for (const row of data ?? []) {
     const existing = map.get(row.member_id)
@@ -65,15 +76,4 @@ export async function getAllTimeScoreboard() {
   return Array.from(map.values())
     .sort((a, b) => b.total_points - a.total_points)
     .map((entry, i) => ({ ...entry, rank: i + 1 }))
-}
-
-export async function getAllSubmissionsForWeek(weekId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('submissions')
-    .select('*')
-    .eq('week_id', weekId)
-
-  if (error) throw error
-  return data ?? []
 }

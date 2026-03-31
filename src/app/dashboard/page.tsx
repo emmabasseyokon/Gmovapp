@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestWeek } from '@/lib/queries/weeks'
-import { getMemberSubmissionsForWeek } from '@/lib/queries/scores'
+import { getMemberSubmissionForWeek } from '@/lib/queries/scores'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
@@ -20,8 +20,7 @@ export default async function DashboardPage() {
       .then(r => r.data ?? []),
   ])
 
-  const submissions = week ? await getMemberSubmissionsForWeek(user.id, week.id) : []
-  const totalPoints = submissions.reduce((sum, s) => sum + s.points, 0)
+  const submission = week ? await getMemberSubmissionForWeek(user.id, week.id) : null
 
   return (
     <div className="space-y-6">
@@ -37,51 +36,24 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="py-5">
             <p className="text-sm font-medium text-gray-500">This Week&apos;s Points</p>
-            <p className="mt-1 text-3xl font-bold text-blue-700">{totalPoints}</p>
+            <p className="mt-1 text-3xl font-bold text-blue-700">{submission?.points ?? 0}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-5">
-            <p className="text-sm font-medium text-gray-500">Tasks Completed</p>
-            <p className="mt-1 text-3xl font-bold text-gray-800">{submissions.length}</p>
+            <p className="text-sm font-medium text-gray-500">Note</p>
+            <p className="mt-1 text-sm text-gray-700">{submission?.note ?? '—'}</p>
           </CardContent>
         </Card>
         <Card className="flex items-center justify-center bg-blue-700 text-white">
           <CardContent className="py-5 text-center">
-            <p className="text-sm font-medium text-blue-100">View Leaderboard</p>
-            <Link href="/dashboard/leaderboard" className="mt-1 block text-lg font-bold underline-offset-2 hover:underline">
-              See Rankings
+            <p className="text-sm font-medium text-blue-100">All-Time Rankings</p>
+            <Link href="/dashboard/scoreboard" className="mt-1 block text-lg font-bold underline-offset-2 hover:underline">
+              Scoreboard
             </Link>
           </CardContent>
         </Card>
       </div>
-
-      {/* This week's tasks */}
-      {submissions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-gray-800">Completed This Week</h2>
-          </CardHeader>
-          <CardContent>
-            <ul className="divide-y divide-gray-100">
-              {submissions.map((sub) => {
-                const task = sub as typeof sub & { tasks: { name: string; description: string | null } }
-                return (
-                  <li key={sub.id} className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{task.tasks?.name}</p>
-                      {task.tasks?.description && (
-                        <p className="text-xs text-gray-500">{task.tasks.description}</p>
-                      )}
-                    </div>
-                    <Badge variant="info">+{sub.points} pts</Badge>
-                  </li>
-                )
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Announcements */}
       {announcements.length > 0 && (
@@ -105,10 +77,10 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      {announcements.length === 0 && submissions.length === 0 && (
+      {!submission && announcements.length === 0 && (
         <Card>
           <CardContent className="py-12 text-center text-gray-400">
-            No activity recorded yet for this week.
+            No scores recorded yet for this week.
           </CardContent>
         </Card>
       )}
