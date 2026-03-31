@@ -75,7 +75,7 @@ export default async function AdminDashboard() {
             <p className="text-sm text-gray-500">Open new week or lock existing</p>
           </div>
         </Link>
-        <Link href="/dashboard/scoreboard"
+        <Link href="/admin/scoreboard"
           className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-5 hover:bg-gray-50">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

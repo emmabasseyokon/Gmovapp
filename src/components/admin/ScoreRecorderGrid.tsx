@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Week, Profile, Submission } from '@/types/database.types'
 import { Button } from '@/components/ui/Button'
@@ -13,44 +14,39 @@ interface Props {
   initialSubmissions: Submission[]
 }
 
-type PointMap = Record<string, { points: string; note: string }>
+type PointMap = Record<string, string>
 
 export function ScoreRecorderGrid({ week, members, initialSubmissions }: Props) {
   const supabase = createClient()
+  const router = useRouter()
 
   const [values, setValues] = useState<PointMap>(() => {
     const map: PointMap = {}
     for (const s of initialSubmissions) {
-      map[s.member_id] = { points: String(s.points), note: s.note ?? '' }
+      map[s.member_id] = String(s.points)
     }
     return map
   })
 
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function handleChange(memberId: string, field: 'points' | 'note', value: string) {
-    setSaved(false)
-    setValues(prev => ({
-      ...prev,
-      [memberId]: { ...prev[memberId] ?? { points: '', note: '' }, [field]: value },
-    }))
+  function handleChange(memberId: string, value: string) {
+    setValues(prev => ({ ...prev, [memberId]: value }))
   }
 
-  async function saveAll() {
+  async function save() {
     setSaving(true)
     setError(null)
 
     const { data: { user } } = await supabase.auth.getUser()
 
     const upserts = members
-      .filter(m => values[m.id]?.points !== '' && values[m.id]?.points !== undefined)
+      .filter(m => values[m.id] !== '' && values[m.id] !== undefined)
       .map(m => ({
         week_id: week.id,
         member_id: m.id,
-        points: Number(values[m.id].points) || 0,
-        note: values[m.id].note || null,
+        points: Number(values[m.id]) || 0,
         recorded_by: user?.id ?? null,
       }))
 
@@ -65,71 +61,44 @@ export function ScoreRecorderGrid({ week, members, initialSubmissions }: Props) 
 
     if (err) {
       setError(err.message)
+      setSaving(false)
     } else {
-      setSaved(true)
+      router.push('/admin/scoreboard')
     }
-    setSaving(false)
   }
 
-  const totalRecorded = members.filter(m => values[m.id]?.points !== '' && values[m.id] !== undefined).length
+  const totalRecorded = members.filter(m => values[m.id] !== '' && values[m.id] !== undefined).length
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Record Scores</h1>
-          <p className="mt-1 text-sm text-gray-500">{week.label}</p>
-        </div>
-        {week.is_locked ? (
-          <Badge variant="danger">Week Locked — Read Only</Badge>
-        ) : (
-          <div className="flex items-center gap-3">
-            {saved && <span className="text-sm text-green-600">Saved!</span>}
-            {error && <span className="text-sm text-red-600">{error}</span>}
-            <Button onClick={saveAll} loading={saving}>Save All</Button>
-          </div>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Record Scores</h1>
+        <p className="mt-1 text-sm text-gray-500">{week.label}</p>
+        {week.is_locked && <Badge variant="danger" className="mt-2">Week Locked — Read Only</Badge>}
       </div>
 
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <span>{totalRecorded} of {members.length} members scored</span>
-      </div>
+      <p className="text-sm text-gray-500">{totalRecorded} of {members.length} members scored</p>
 
       <Card>
         <CardHeader>
-          <p className="text-sm text-gray-500">Enter each member&apos;s point total for this week. Leave blank to skip.</p>
+          <p className="text-sm text-gray-500">Enter each member&apos;s point total for this week.</p>
         </CardHeader>
         <CardContent className="p-0">
           <ul className="divide-y divide-gray-100">
             {members.map((member, idx) => {
-              const val = values[member.id] ?? { points: '', note: '' }
-              const hasScore = val.points !== ''
+              const pts = values[member.id] ?? ''
+              const hasScore = pts !== ''
               return (
-                <li key={member.id} className={`flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-6 sm:py-4 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                  {/* Rank / index */}
-                  <span className="hidden w-6 shrink-0 text-sm text-gray-400 sm:block">{idx + 1}</span>
-
-                  {/* Name */}
+                <li key={member.id} className={`flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                  <span className="w-6 shrink-0 text-sm text-gray-400">{idx + 1}</span>
                   <span className="flex-1 font-medium text-gray-800">{member.full_name}</span>
-
-                  {/* Note input */}
-                  <input
-                    type="text"
-                    disabled={week.is_locked}
-                    value={val.note}
-                    onChange={e => handleChange(member.id, 'note', e.target.value)}
-                    placeholder="Note (optional)"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 focus:border-blue-500 focus:outline-none disabled:bg-gray-100 sm:w-48"
-                  />
-
-                  {/* Points input */}
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       min="0"
                       disabled={week.is_locked}
-                      value={val.points}
-                      onChange={e => handleChange(member.id, 'points', e.target.value)}
+                      value={pts}
+                      onChange={e => handleChange(member.id, e.target.value)}
                       placeholder="0"
                       className={`w-24 rounded-lg border px-3 py-1.5 text-right text-sm font-semibold focus:outline-none disabled:bg-gray-100 ${
                         hasScore
@@ -147,8 +116,11 @@ export function ScoreRecorderGrid({ week, members, initialSubmissions }: Props) 
       </Card>
 
       {!week.is_locked && (
-        <div className="flex justify-end">
-          <Button onClick={saveAll} loading={saving} size="lg">Save All</Button>
+        <div className="space-y-2">
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <Button onClick={save} loading={saving} size="lg" className="w-full sm:w-auto sm:min-w-[160px]">
+            Save
+          </Button>
         </div>
       )}
     </div>
