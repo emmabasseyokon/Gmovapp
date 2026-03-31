@@ -51,30 +51,32 @@ export default async function ScoreboardPage() {
               <h2 className="font-semibold text-gray-800">Full Rankings</h2>
             </CardHeader>
             <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-6 py-3">Rank</th>
-                    <th className="px-6 py-3">Member</th>
-                    <th className="px-6 py-3 text-center">Weeks</th>
-                    <th className="px-6 py-3 text-right">Total Points</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {scoreboard.map(entry => (
-                    <tr key={entry.member_id} className={`hover:bg-gray-50 ${entry.rank <= 3 ? 'font-medium' : ''}`}>
-                      <td className="px-6 py-4 text-lg">
-                        {MEDAL[entry.rank] ?? <span className="text-sm text-gray-500">#{entry.rank}</span>}
-                      </td>
-                      <td className="px-6 py-4 text-gray-800">{entry.full_name}</td>
-                      <td className="px-6 py-4 text-center text-gray-500">{entry.weeks_participated}</td>
-                      <td className="px-6 py-4 text-right">
-                        <Badge variant="info" className="text-sm">{entry.total_points} pts</Badge>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      <th className="px-3 py-3 sm:px-6">Rank</th>
+                      <th className="px-3 py-3 sm:px-6">Member</th>
+                      <th className="px-3 py-3 text-center sm:px-6">Weeks</th>
+                      <th className="px-3 py-3 text-right sm:px-6">Points</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {scoreboard.map(entry => (
+                      <tr key={entry.member_id} className={`hover:bg-gray-50 ${entry.rank <= 3 ? 'font-medium' : ''}`}>
+                        <td className="px-3 py-3 text-lg sm:px-6 sm:py-4">
+                          {MEDAL[entry.rank] ?? <span className="text-sm text-gray-500">#{entry.rank}</span>}
+                        </td>
+                        <td className="px-3 py-3 text-gray-800 sm:px-6 sm:py-4">{entry.full_name}</td>
+                        <td className="px-3 py-3 text-center text-gray-500 sm:px-6 sm:py-4">{entry.weeks_participated}</td>
+                        <td className="px-3 py-3 text-right sm:px-6 sm:py-4">
+                          <Badge variant="info">{entry.total_points} pts</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </>
