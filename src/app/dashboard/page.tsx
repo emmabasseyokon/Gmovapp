@@ -2,8 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { getLatestWeek } from '@/lib/queries/weeks'
 import { getMemberSubmissionForWeek } from '@/lib/queries/scores'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import Link from 'next/link'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -32,25 +30,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* Score summary */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-1">
         <Card>
           <CardContent className="py-5">
             <p className="text-sm font-medium text-gray-500">This Week&apos;s Points</p>
             <p className="mt-1 text-3xl font-bold text-blue-700">{submission?.points ?? 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-5">
-            <p className="text-sm font-medium text-gray-500">Note</p>
-            <p className="mt-1 text-sm text-gray-700">{submission?.note ?? '—'}</p>
-          </CardContent>
-        </Card>
-        <Card className="flex items-center justify-center bg-blue-700 text-white">
-          <CardContent className="py-5 text-center">
-            <p className="text-sm font-medium text-blue-100">All-Time Rankings</p>
-            <Link href="/dashboard/scoreboard" className="mt-1 block text-lg font-bold underline-offset-2 hover:underline">
-              Scoreboard
-            </Link>
           </CardContent>
         </Card>
       </div>

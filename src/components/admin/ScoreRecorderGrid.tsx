@@ -71,10 +71,18 @@ export function ScoreRecorderGrid({ week, members, initialSubmissions }: Props) 
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Record Scores</h1>
-        <p className="mt-1 text-sm text-gray-500">{week.label}</p>
-        {week.is_locked && <Badge variant="danger" className="mt-2">Week Locked — Read Only</Badge>}
+      {/* Header row with Save button top-right on desktop */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Record Scores</h1>
+          <p className="mt-1 text-sm text-gray-500">{week.label}</p>
+          {week.is_locked && <Badge variant="danger" className="mt-2">Week Locked — Read Only</Badge>}
+        </div>
+        {!week.is_locked && (
+          <div className="hidden sm:block">
+            <Button onClick={save} loading={saving} size="lg">Save</Button>
+          </div>
+        )}
       </div>
 
       <p className="text-sm text-gray-500">{totalRecorded} of {members.length} members scored</p>
@@ -115,14 +123,15 @@ export function ScoreRecorderGrid({ week, members, initialSubmissions }: Props) 
         </CardContent>
       </Card>
 
+      {/* Mobile save button — full width, shown only on small screens */}
       {!week.is_locked && (
-        <div className="space-y-2">
+        <div className="space-y-2 sm:hidden">
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button onClick={save} loading={saving} size="lg" className="w-full sm:w-auto sm:min-w-[160px]">
-            Save
-          </Button>
+          <Button onClick={save} loading={saving} size="lg" className="w-full">Save</Button>
         </div>
       )}
+      {/* Desktop error — shown below the card */}
+      {error && <p className="hidden text-sm text-red-600 sm:block">{error}</p>}
     </div>
   )
 }
