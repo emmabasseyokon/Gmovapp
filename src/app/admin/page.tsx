@@ -21,20 +21,22 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">Manage scoring and members.</p>
-      </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-500">Manage scoring and members.</p>
+        </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Link href="/admin/weeks?create=1"
-          className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 w-full sm:w-auto">
-          Create Week
-        </Link>
-        <Link href="/admin/members?create=1"
-          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 w-full sm:w-auto">
-          Add Member
-        </Link>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Link href="/admin/weeks?create=1"
+            className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 w-full sm:w-auto">
+            Create Week
+          </Link>
+          <Link href="/admin/members?create=1"
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 w-full sm:w-auto">
+            Add Member
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
