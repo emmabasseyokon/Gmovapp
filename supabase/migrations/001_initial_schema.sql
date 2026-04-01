@@ -1,5 +1,5 @@
 -- ============================================================
--- God's Men of Valor (GMOV) — Initial Schema
+-- God's Men of Valor (GMOV) — Full Schema
 -- ============================================================
 
 -- ── Profiles (extends auth.users) ───────────────────────────
@@ -31,18 +31,6 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
--- ── Tasks ────────────────────────────────────────────────────
-CREATE TABLE public.tasks (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name         text NOT NULL,
-  description  text,
-  points       integer NOT NULL CHECK (points > 0),
-  is_active    boolean DEFAULT true,
-  created_by   uuid REFERENCES public.profiles(id),
-  created_at   timestamptz DEFAULT now()
-);
-
-
 -- ── Weeks ────────────────────────────────────────────────────
 CREATE TABLE public.weeks (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -55,23 +43,22 @@ CREATE TABLE public.weeks (
 );
 
 
--- ── Submissions ──────────────────────────────────────────────
+-- ── Submissions (one row per member per week) ───────────────
 CREATE TABLE public.submissions (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  week_id      uuid NOT NULL REFERENCES public.weeks(id) ON DELETE CASCADE,
-  member_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  task_id      uuid NOT NULL REFERENCES public.tasks(id) ON DELETE CASCADE,
-  points       integer NOT NULL,
-  recorded_by  uuid REFERENCES public.profiles(id),
-  created_at   timestamptz DEFAULT now(),
-  UNIQUE (week_id, member_id, task_id)
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  week_id     uuid NOT NULL REFERENCES public.weeks(id) ON DELETE CASCADE,
+  member_id   uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  points      integer NOT NULL CHECK (points >= 0),
+  note        text,
+  recorded_by uuid REFERENCES public.profiles(id),
+  created_at  timestamptz DEFAULT now(),
+  UNIQUE (week_id, member_id)
 );
 
 -- Prevent writes to locked weeks
 CREATE OR REPLACE FUNCTION public.check_week_not_locked()
 RETURNS trigger AS $$
-DECLARE
-  locked boolean;
+DECLARE locked boolean;
 BEGIN
   SELECT is_locked INTO locked FROM public.weeks WHERE id = NEW.week_id;
   IF locked THEN
@@ -86,41 +73,30 @@ CREATE TRIGGER submissions_lock_check
   FOR EACH ROW EXECUTE FUNCTION public.check_week_not_locked();
 
 
--- ── Announcements ────────────────────────────────────────────
-CREATE TABLE public.announcements (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title       text NOT NULL,
-  body        text NOT NULL,
-  created_by  uuid REFERENCES public.profiles(id),
-  created_at  timestamptz DEFAULT now()
-);
-
-
 -- ── Weekly Scores View ───────────────────────────────────────
-CREATE VIEW public.weekly_scores AS
+CREATE VIEW public.weekly_scores
+  WITH (security_invoker = true)
+AS
 SELECT
   s.week_id,
-  w.label   AS week_label,
+  w.label      AS week_label,
   w.start_date,
   s.member_id,
   p.full_name,
-  SUM(s.points) AS total_points,
-  RANK() OVER (PARTITION BY s.week_id ORDER BY SUM(s.points) DESC) AS rank
+  s.points     AS total_points,
+  RANK() OVER (PARTITION BY s.week_id ORDER BY s.points DESC) AS rank
 FROM public.submissions s
 JOIN public.profiles p ON p.id = s.member_id
-JOIN public.weeks w ON w.id = s.week_id
-GROUP BY s.week_id, w.label, w.start_date, s.member_id, p.full_name;
+JOIN public.weeks w    ON w.id = s.week_id;
 
 
 -- ============================================================
 -- Row Level Security
 -- ============================================================
 
-ALTER TABLE public.profiles      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tasks         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.weeks         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.submissions   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.weeks       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 
 -- Helper function: is current user an admin?
 CREATE OR REPLACE FUNCTION public.is_admin()
@@ -146,28 +122,6 @@ CREATE POLICY "Admins can update any profile"
   USING (public.is_admin());
 
 
--- ── tasks policies ───────────────────────────────────────────
-CREATE POLICY "Members can view active tasks"
-  ON public.tasks FOR SELECT
-  USING (auth.uid() IS NOT NULL AND is_active = true);
-
-CREATE POLICY "Admins can view all tasks"
-  ON public.tasks FOR SELECT
-  USING (public.is_admin());
-
-CREATE POLICY "Admins can insert tasks"
-  ON public.tasks FOR INSERT
-  WITH CHECK (public.is_admin());
-
-CREATE POLICY "Admins can update tasks"
-  ON public.tasks FOR UPDATE
-  USING (public.is_admin());
-
-CREATE POLICY "Admins can delete tasks"
-  ON public.tasks FOR DELETE
-  USING (public.is_admin());
-
-
 -- ── weeks policies ───────────────────────────────────────────
 CREATE POLICY "Anyone authenticated can view weeks"
   ON public.weeks FOR SELECT
@@ -180,9 +134,9 @@ CREATE POLICY "Admins can manage weeks"
 
 
 -- ── submissions policies ─────────────────────────────────────
-CREATE POLICY "Members can view own submissions"
+CREATE POLICY "Members can view all submissions"
   ON public.submissions FOR SELECT
-  USING (member_id = auth.uid());
+  USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Admins can view all submissions"
   ON public.submissions FOR SELECT
@@ -192,25 +146,3 @@ CREATE POLICY "Admins can manage submissions"
   ON public.submissions FOR ALL
   USING (public.is_admin())
   WITH CHECK (public.is_admin());
-
-
--- ── announcements policies ───────────────────────────────────
-CREATE POLICY "Anyone authenticated can view announcements"
-  ON public.announcements FOR SELECT
-  USING (auth.uid() IS NOT NULL);
-
-CREATE POLICY "Admins can manage announcements"
-  ON public.announcements FOR ALL
-  USING (public.is_admin())
-  WITH CHECK (public.is_admin());
-
-
--- ============================================================
--- Seed: Sample tasks (optional, remove before production)
--- ============================================================
--- INSERT INTO public.tasks (name, description, points) VALUES
---   ('Attended Service',      'Present at weekly Sunday service',       10),
---   ('Led Devotion',          'Led the group devotion session',         20),
---   ('Completed Assignment',  'Submitted the weekly reading/assignment', 15),
---   ('Invited a Guest',       'Brought a visitor to the group',         25),
---   ('Prayer Attendance',     'Attended mid-week prayer meeting',       10);
